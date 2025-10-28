@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShapeTransform Lab</title>
+<style>
+:root {
+  --bg: #FBF3E6;
+  --card: #FFFFFF;
+  --card-soft: #FFFCF6;
+  --ink: #23281F;
+  --ink-soft: #666C5E;
+  --ink-faint: #9AA093;
+  --border: #E9DCC3;
+  --border-soft: #F1E7D3;
+  --mint: #6FAE8A;
+  --mint-dark: #4D8A69;
+  --mint-pale: #DFF0E4;
+  --mint-bg: #F1F8F2;
+  --shadow: 0 1px 2px rgba(35,40,31,0.04), 0 10px 24px -14px rgba(35,40,31,0.18);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --font-display: 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Segoe UI', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(111,174,138,0.07), transparent 40%),
+    radial-gradient(circle at 92% 18%, rgba(111,174,138,0.06), transparent 38%);
+}
+
+a { color: inherit; }
+button { font-family: inherit; }
+svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+.site-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 26px 0 18px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 40px; height: 40px; color: var(--mint-dark);
+  background: var(--mint-pale); border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.brand-mark svg { width: 24px; height: 24px; fill: none; }
+.brand-text h1 {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  margin: 0; letter-spacing: -0.01em;
+}
+.brand-text p { margin: 1px 0 0; font-size: 13px; color: var(--ink-soft); }
+.site-nav { display: flex; gap: 28px; }
+.site-nav button {
+  background: none; border: none; cursor: pointer; font-size: 14.5px;
+  color: var(--ink-soft); font-weight: 500; padding: 6px 0;
+}
+.site-nav button:hover { color: var(--ink); }
+.control-bar {
+  background: var(--card); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  padding: 20px 24px; margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(180px, 100px) auto; gap: 16px;
+  align-items: end;
+}
+.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.field label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+.combo {
+  display: flex; align-items: center; gap: 10px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  padding: 10px 14px; background: var(--card-soft); position: relative;
+}
+.combo .shape-icon { width: 20px; height: 20px; color: var(--mint-dark); flex: none; }
+
+.combo select {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  border: none; background: none; font: inherit;
+  font-size: 15px; font-weight: 600; color: var(--ink); flex: 1;
+  cursor: pointer; padding-right: 18px;
+}
+.combo::after {
+  content: ''; position: absolute; right: 14px; top: 50%;
+  width: 8px; height: 8px; border-right: 2px solid var(--ink-faint); border-bottom: 2px solid var(--ink-faint);
+  transform: translateY(-70%) rotate(45deg); pointer-events: none;
+}
+.pair-fields { display: contents; }
+.swap-btn, .icon-btn {
+  width: 44px; height: 44px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--card-soft);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  color: var(--ink-soft); transition: transform .15s ease, background .15s ease;
+}
+.swap-btn:hover { background: var(--mint-pale); color: var(--mint-dark); transform: rotate(180deg); }
+.swap-btn svg, .icon-btn svg { width: 18px; height: 18px; fill: none; }
+.arrow-sep { display: flex; align-items: center; justify-content: center; color: var(--ink-faint); width: 20px;  align-self: end; margin-bottom: 13px;}
+.arrow-sep svg { width: 18px; height: 18px; fill: none; }
+
+.btn {
+  border-radius: var(--radius-sm); border: 1.5px solid transparent; cursor: pointer;
+  font-weight: 600; font-size: 14.5px; padding: 12px 20px;
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+}
+.btn svg { width: 16px; height: 16px; }
+.btn-primary { background: var(--mint); color: #fff; }
+.btn-primary:hover { background: var(--mint-dark); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary.is-playing { opacity: .75; cursor: progress; }
+.btn-ghost { background: var(--card-soft); border-color: var(--border); color: var(--ink); }
+.btn-ghost:hover { background: var(--mint-bg); border-color: var(--mint); color: var(--mint-dark); }
+.main-grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 22px; align-items: start; }
+.card {
+  background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.card-pad { padding: 22px 24px; }
+
+.anim-head { display: flex; align-items: center; gap: 8px; padding: 20px 24px 6px; }
+.anim-head .spark { color: var(--mint-dark); width: 18px; height: 18px; }
+
+.anim-head h2 { font-family: var(--font-display); font-size: 16.5px; margin: 0; font-weight: 600; }
+
+.step-dots { display: flex; align-items: center; padding: 14px 24px 6px; }
+.step-dot {
+  width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border);
+  background: var(--card-soft); color: var(--ink-soft); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.step-dot.active { background: var(--mint); border-color: var(--mint); color: #fff; }
+.step-dot.done { border-color: var(--mint); color: var(--mint-dark); }
+.step-line { flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--border) 0 5px, transparent 5px 9px); margin: 0 2px; min-width: 8px; }
+
+.canvas-shell { position: relative; margin: 12px 24px 0; border-radius: var(--radius-md); overflow: hidden; background: linear-gradient(180deg, #F6EEDD, #F1E9D6); border: 1px solid var(--border-soft); }
+.canvas-host { width: 100%; height: 380px; display: block; }
+.canvas-host canvas { display: block; width: 100% !important; height: 100% !important; }
+.canvas-hint {
+  position: absolute; right: 12px; bottom: 12px; display: flex; gap: 10px;
+  font-size: 11.5px; color: var(--ink-soft); background: rgba(255,255,255,0.72);
+  padding: 6px 10px; border-radius: 20px; backdrop-filter: blur(3px);
+}
+.canvas-hint span { display: inline-flex; align-items: center; gap: 4px; }
+
+.step-desc-bar { margin: 16px 24px 22px; background: var(--mint-bg); border: 1px solid var(--mint-pale); border-radius: var(--radius-md); padding: 14px 16px; font-size: 14px; }
+.step-desc-bar b { color: var(--mint-dark); }
+
+.empty-state {
+  display: none; position: absolute; inset: 0; z-index: 5;
+  flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  gap: 14px; padding: 24px; background: rgba(251,243,230,0.94);
+}
+.empty-state.show { display: flex; }
+.empty-state p { margin: 0; font-size: 14.5px; color: var(--ink-soft); max-width: 420px; line-height: 1.65; }
+.empty-state p::before {
+  content: 'Transformation unavailable';
+  display: block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 7px;
+}
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 560px; }
+.chip-btn {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.chip-btn:hover { border-color: var(--mint); background: var(--mint-bg); }
+.empty-copy { font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 14px; }
+
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:disabled:hover { background: var(--card-soft); }
+.btn-primary:disabled:hover { background: var(--mint); }
+.tabs { display: flex; border-bottom: 1px solid var(--border-soft); }
+.tab-btn {
+  flex: 1; background: none; border: none; padding: 18px 12px; font-size: 14.5px;
+  font-weight: 600; color: var(--ink-faint); cursor: pointer; border-bottom: 2.5px solid transparent;
+}
+.tab-btn.active { color: var(--mint-dark); border-bottom-color: var(--mint); }
+.tab-panel { display: none; padding: 22px 24px 26px; max-height: 560px; overflow-y: auto; }
+.tab-panel.active { display: block; }
+
+.fx-intro { margin: 0 0 18px; font-size: 14px; line-height: 1.55; color: var(--ink-soft); }
+.fx-intro strong { display: block; font-family: var(--font-display); font-size: 16.5px; color: var(--ink); margin-bottom: 6px; }
+.fx-block { padding: 14px 0; border-top: 1px solid var(--border-soft); }
+.fx-block:first-of-type { border-top: none; }
+.chip { display: inline-block; background: var(--mint-pale); color: var(--mint-dark); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 4px 10px; border-radius: 20px; margin-bottom: 8px; }
+.fx-line { margin: 4px 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+.fx-box { margin-top: 10px; font-family: var(--font-mono); font-weight: 700; font-size: 14.5px; background: var(--card-soft); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--ink); }
+.insight { margin-top: 18px; background: var(--mint-bg); border: 1px solid var(--mint-pale); border-radius: var(--radius-md); padding: 14px 16px; font-size: 13.5px; line-height: 1.55; color: #2F4A3C; }
+
+.tab-panel.explain p { font-size: 14px; line-height: 1.7; color: var(--ink-soft); margin: 0 0 14px; }
+.tab-panel.explain em { color: var(--ink); font-style: normal; font-weight: 600; }
+.examples { margin-top: 22px; background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 20px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.examples-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); flex: none; max-width: 90px; line-height: 1.3; }
+.example-btn {
+  display: flex; align-items: center; gap: 9px; background: var(--card-soft); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--ink);
+  transition: border-color .15s ease, background .15s ease;
+}
+.example-btn:hover { border-color: var(--mint); background: var(--mint-bg); }
+.example-btn .shape-icon { width: 18px; height: 18px; color: var(--mint-dark); }
+.example-btn.active { border-color: var(--mint); background: var(--mint-pale); }
+.site-footer { text-align: center; padding: 40px 0 30px; color: var(--ink-soft); font-size: 13.5px; }
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 16px);
+  background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 30px;
+  font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease;
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,0.4); z-index: 60;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(35,40,31,0.42); backdrop-filter: blur(2px);
+  display: none; align-items: center; justify-content: center; padding: 24px; z-index: 80;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card); border-radius: var(--radius-lg); max-width: 640px; width: 100%;
+  max-height: 82vh; overflow-y: auto; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.35);
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--card); }
+.modal-head h3 { margin: 0; font-family: var(--font-display); font-size: 18px; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--ink-soft); width: 30px; height: 30px; }
+.modal-close svg { fill: none; width: 18px; height: 18px; }
+.modal-body { padding: 20px 24px 26px; }
+.modal-body p { font-size: 14.5px; line-height: 1.7; color: var(--ink-soft); }
+.library-entry { padding: 18px 0; border-top: 1px solid var(--border-soft); }
+.library-entry:first-child { border-top: none; padding-top: 4px; }
+.library-entry h4 { font-family: var(--font-display); font-size: 15px; margin: 0 0 8px; }
+@media (max-width: 980px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .control-bar { grid-template-columns: 1fr; }
+  .pair-fields { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+  .arrow-sep { display: none; }
+  .btn { justify-content: center; }
+}
+@media (max-width: 620px) {
+  .site-nav { display: none; }
+  .wrap { padding: 0 16px; }
+  .canvas-host { height: 300px; }
+  .pair-fields { grid-template-columns: 1fr auto; }
+  .field:nth-child(3) { grid-column: 1 / -1; }
+  .examples-label { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <div class="brand">
+        <div class="brand-text">
+          <h1>ShapeTransform Lab</h1>
+          <p>Visualize. Transform. Understand.</p>
+        </div>
+      </div>
+      <nav class="site-nav">
+        <button type="button" data-open-modal="#modalLibrary">Formula Library</button>
+      </nav>
+    </header>
+
+    <section class="control-bar">
+      <div class="pair-fields">
+        <div class="field">
+          <label for="fromSelect">First Shape (From)</label>
+          <div class="combo">
+            <span class="shape-icon" id="fromIcon"></span>
+            <select id="fromSelect" aria-label="First shape"></select>
+          </div>
+        </div>
+        <button type="button" class="swap-btn" id="swapBtn" aria-label="Swap shapes" title="Swap shapes">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+        </button>
+        <div class="field">
+          <label for="toSelect">Second Shape (To)</label>
+          <div class="combo">
+            <span class="shape-icon" id="toIcon"></span>
+            <select id="toSelect" aria-label="Second shape"></select>
+          </div>
+        </div>
+      </div>
+      <span class="arrow-sep">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+      </span>
+      <button type="button" class="btn btn-primary" id="transformBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 5v14l12-7Z"/></svg>
+        Transform
+      </button>
+      <button type="button" class="btn btn-ghost" id="resetBtn">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M5 15a8 8 0 0 0 14 3M19 9A8 8 0 0 0 5 6"/></svg>
+        Reset
+      </button>
+    </section>
+
+    <main class="main-grid">
+      <div class="card">
+        <div class="anim-head">
+          <h2>Transformation Animation</h2>
+        </div>
+        <div class="step-dots" id="stepDots"></div>
+        <div class="canvas-shell">
+          <div class="canvas-host" id="canvasHost"></div>
+          <div class="canvas-hint">
+            <span>Drag to rotate</span>
+            <span>Scroll to zoom</span>
+          </div>
+          <div class="empty-state" id="emptyState">
+            <p id="emptyMsg">We haven&rsquo;t built this transformation yet.</p>
+            <div class="chip-row" id="emptySuggest"></div>
+          </div>
+        </div>
+        <div class="step-desc-bar"><b id="stepLabel">Step 1 of 7:</b> <span id="stepDesc"></span></div>
+      </div>
+
+      <div class="card">
+        <div class="tabs">
+          <button type="button" class="tab-btn active" id="tabFormula">Formula Derivation</button>
+          <button type="button" class="tab-btn" id="tabExplain">Explanation</button>
+        </div>
+        <div class="tab-panel active" id="panelFormula"></div>
+        <div class="tab-panel" id="panelExplain"></div>
+      </div>
+    </main>
+
+    <section class="examples">
+      <span class="examples-label">Try These Examples</span>
+       <button type="button" class="example-btn" data-from="triangle" data-to="tetrahedron"><span class="shape-icon">TR</span> Triangle - Tetrahedron</button>
+      <button type="button" class="example-btn" data-from="triangle" data-to="trianglePrism"><span class="shape-icon">TR</span> Triangle - Triangular Prism</button>
+      <button type="button" class="example-btn" data-from="square" data-to="cube"><span class="shape-icon">SQ</span> Square - Cube</button>
+       <button type="button" class="example-btn" data-from="rectangle" data-to="cube"><span class="shape-icon">RC</span> Rectangle - Cuboid</button>
+      <button type="button" class="example-btn" data-from="pentagon" data-to="pentagonalPrism"><span class="shape-icon">PE</span> Pentagon - Pentagonal Prism</button>
+      <button type="button" class="example-btn" data-from="hexagon" data-to="prism"><span class="shape-icon">HX</span> Hexagon - Hexagonal Prism</button>
+      <button type="button" class="example-btn" data-from="heptagon" data-to="heptagonalPrism"><span class="shape-icon">HP</span> Heptagon - Heptagonal Prism</button>
+       <button type="button" class="example-btn" data-from="octagon" data-to="octagonalPrism"><span class="shape-icon">OC</span> Octagon - Octagonal Prism</button>
+    </section>
+    <footer class="site-footer">Enjoy Learning!!</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="modalLibrary">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Formula Library</h3>
+        <button type="button" class="modal-close" data-close-modal="#modalLibrary"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="modal-body" id="formulaLibraryBody"></div>
+    </div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+function quadTris(a, b, c, d) {
+    return [...a, ...b, ...c, ...a, ...c, ...d];
+  }
+  function triTris(a, b, c) {
+    return [...a, ...b, ...c];
+  }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function easeInOutCubic(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+
+  function centerPieces(pieces) {
+    const tmp = new THREE.Vector3();
+    const netBox = new THREE.Box3();
+    const combBox = new THREE.Box3();
+    pieces.forEach(function (p) {
+      for (let i = 0; i < p.net.length; i += 3) {
+        tmp.set(p.net[i], p.net[i + 1], p.net[i + 2]);
+        netBox.expandByPoint(tmp);
+      }
+      for (let i = 0; i < p.combined.length; i += 3) {
+        tmp.set(p.combined[i], p.combined[i + 1], p.combined[i + 2]);
+        combBox.expandByPoint(tmp);
+      }
+    });
+    const combCenter = combBox.getCenter(new THREE.Vector3());
+    const netCenterRaw = netBox.getCenter(new THREE.Vector3());
+    pieces.forEach(function (p) {
+      for (let i = 0; i < p.net.length; i += 3) {
+        p.net[i] -= combCenter.x; p.net[i + 1] -= combCenter.y; p.net[i + 2] -= combCenter.z;
+      }
+      for (let i = 0; i < p.combined.length; i += 3) {
+        p.combined[i] -= combCenter.x; p.combined[i + 1] -= combCenter.y; p.combined[i + 2] -= combCenter.z;
+      }
+    });
+    const netSize = netBox.getSize(new THREE.Vector3());
+    const combSize = combBox.getSize(new THREE.Vector3());
+    return {
+      netExtent: Math.max(netSize.x, netSize.y, netSize.z),
+      combinedExtent: Math.max(combSize.x, combSize.y, combSize.z),
+      netOffset: {
+        x: netCenterRaw.x - combCenter.x,
+        y: netCenterRaw.y - combCenter.y,
+        z: netCenterRaw.z - combCenter.z
+      }
+    };
+  }
+function buildSquareCube() {
+    const nFront = [[-.5, -.5, 0], [.5, -.5, 0], [.5, .5, 0], [-.5, .5, 0]];
+    const nRight = [[.5, -.5, 0], [1.5, -.5, 0], [1.5, .5, 0], [.5, .5, 0]];
+    const nLeft = [[-1.5, -.5, 0], [-.5, -.5, 0], [-.5, .5, 0], [-1.5, .5, 0]];
+    const nTop = [[-.5, .5, 0], [.5, .5, 0], [.5, 1.5, 0], [-.5, 1.5, 0]];
+    const nBottom = [[-.5, -1.5, 0], [.5, -1.5, 0], [.5, -.5, 0], [-.5, -.5, 0]];
+    const nBack = [[-.5, 1.5, 0], [.5, 1.5, 0], [.5, 2.5, 0], [-.5, 2.5, 0]];
+
+    const cFront = [[-.5, -.5, .5], [.5, -.5, .5], [.5, .5, .5], [-.5, .5, .5]];
+    const cRight = [[.5, -.5, .5], [.5, -.5, -.5], [.5, .5, -.5], [.5, .5, .5]];
+    const cLeft = [[-.5, -.5, -.5], [-.5, -.5, .5], [-.5, .5, .5], [-.5, .5, -.5]];
+    const cTop = [[-.5, .5, .5], [.5, .5, .5], [.5, .5, -.5], [-.5, .5, -.5]];
+    const cBottom = [[-.5, -.5, -.5], [.5, -.5, -.5], [.5, -.5, .5], [-.5, -.5, .5]];
+    const cBack = [[-.5, .5, -.5], [.5, .5, -.5], [.5, -.5, -.5], [-.5, -.5, -.5]];
+
+    const defs = [[nFront, cFront], [nRight, cRight], [nLeft, cLeft], [nTop, cTop], [nBottom, cBottom], [nBack, cBack]];
+    const palette = ['#8fc9ac', '#84c1a2', '#7ab897', '#84c1a2', '#7ab897', '#8fc9ac'];
+    return defs.map(function (pair, i) {
+      return {
+        color: palette[i],
+        net: new Float32Array(quadTris(pair[0][0], pair[0][1], pair[0][2], pair[0][3])),
+        combined: new Float32Array(quadTris(pair[1][0], pair[1][1], pair[1][2], pair[1][3]))
+      };
+    });
+  }
+function buildDiscPrism(N, r, h, netGap) {
+    const pieces = [];
+    function capTris(y, flip) {
+      const tris = [];
+      for (let i = 0; i < N; i++) {
+        const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2;
+        const p0 = [0, y, 0];
+        const p1 = [r * Math.sin(a0), y, r * Math.cos(a0)];
+        const p2 = [r * Math.sin(a1), y, r * Math.cos(a1)];
+        if (!flip) tris.push.apply(tris, triTris(p0, p1, p2));
+        else tris.push.apply(tris, triTris(p0, p2, p1));
+      }
+      return tris;
+    }
+    const bottomComb = capTris(-h / 2, true);
+    const topComb = capTris(h / 2, false);
+    const bottomNet = capTris(-h / 2 - netGap, true);
+    const topNet = capTris(h / 2 + netGap, false);
+    pieces.push({ color: '#84c1a2', net: new Float32Array(bottomNet), combined: new Float32Array(bottomComb) });
+    pieces.push({ color: '#84c1a2', net: new Float32Array(topNet), combined: new Float32Array(topComb) });
+
+    const circumference = 2 * Math.PI * r;
+    const latNet = [], latComb = [];
+    for (let i = 0; i < N; i++) {
+      const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2;
+      const c0 = [r * Math.sin(a0), -h / 2, r * Math.cos(a0)];
+      const c1 = [r * Math.sin(a1), -h / 2, r * Math.cos(a1)];
+      const c2 = [r * Math.sin(a1), h / 2, r * Math.cos(a1)];
+      const c3 = [r * Math.sin(a0), h / 2, r * Math.cos(a0)];
+      latComb.push.apply(latComb, quadTris(c0, c1, c2, c3));
+
+      const x0 = (i / N - 0.5) * circumference, x1 = ((i + 1) / N - 0.5) * circumference;
+      const zFlat = netGap * 1.35;
+      const n0 = [x0, -h / 2, zFlat], n1 = [x1, -h / 2, zFlat], n2 = [x1, h / 2, zFlat], n3 = [x0, h / 2, zFlat];
+      latNet.push.apply(latNet, quadTris(n0, n1, n2, n3));
+    }
+    pieces.push({ color: '#79b494', net: new Float32Array(latNet), combined: new Float32Array(latComb) });
+    return pieces;
+  }
+  
+  function buildRegularPolygonPrism(N, side, h, netGap) {
+    const r = side / (2 * Math.sin(Math.PI / N));
+    return buildDiscPrism(N, r, h, netGap);
+  }
+  
+  // polygon
+  function buildTrianglePolygon(n, kind, width, height) {
+    const pieces = [];
+    const colors = ['#8fc9ac', '#7ab897', '#84c1a2', '#79b494', '#6fab89', '#8fc9ac', '#84c1a2', '#7ab897', '#79b494', '#6fab89'];
+
+   
+    if (kind === 'rectangle' || kind === 'square') {
+      const w = width || 1.2;
+      const h = height || (kind === 'square' ? 1.2 : 0.72);
+      const P0 = [-w / 2, -h / 2, 0], P1 = [w / 2, -h / 2, 0];
+      const P2 = [w / 2, h / 2, 0], P3 = [-w / 2, h / 2, 0];
+      const gap = 0.55;
+      const tris = [
+        [P0, P1, P2],
+        [P0, P2, P3]
+      ];
+      tris.forEach(function (tri, idx) {
+        const cx = (tri[0][0] + tri[1][0] + tri[2][0]) / 3;
+        const cy = (tri[0][1] + tri[1][1] + tri[2][1]) / 3;
+        const len = Math.hypot(cx, cy) || 1;
+        const ox = cx / len * gap, oy = cy / len * gap;
+        const net = tri.map(function (q) { return [q[0] + ox, q[1] + oy, q[2]]; });
+        pieces.push({
+          color: colors[idx],
+          net: new Float32Array(triTris(net[0], net[1], net[2])),
+          combined: new Float32Array(triTris(tri[0], tri[1], tri[2]))
+        });
+      });
+      return pieces;
+    }
+
+    // Regular n-gon
+    const R = 0.72;
+    const gap = 0.85;
+    for (let i = 0; i < n; i++) {
+      const a0 = (i / n) * Math.PI * 2 - Math.PI / 2;
+      const a1 = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2;
+      const O = [0, 0, 0];
+      const P1 = [R * Math.cos(a0), R * Math.sin(a0), 0];
+      const P2 = [R * Math.cos(a1), R * Math.sin(a1), 0];
+      const mid = (a0 + a1) / 2;
+      const ox = Math.cos(mid) * gap, oy = Math.sin(mid) * gap;
+      const net = [
+        [ox, oy, 0],
+        [P1[0] + ox, P1[1] + oy, 0],
+        [P2[0] + ox, P2[1] + oy, 0]
+      ];
+      pieces.push({
+        color: colors[i % colors.length],
+        net: new Float32Array(triTris(net[0], net[1], net[2])),
+        combined: new Float32Array(triTris(O, P1, P2))
+      });
+    }
+    return pieces;
+  }
+function buildTriangleTetra() {
+    const R = 1 / Math.sqrt(3);
+    const H = Math.sqrt(2 / 3);
+    const k = 0.8660254;
+    const c0 = [0, 0, R], c1 = [-R * k, 0, -R * 0.5], c2 = [R * k, 0, -R * 0.5];
+    const n0 = [0, 0, -2 * R], n1 = [2 * R * k, 0, R], n2 = [-2 * R * k, 0, R];
+    const apex = [0, H, 0];
+    const pieces = [];
+    pieces.push({ color: '#8fc9ac', net: new Float32Array(triTris(c0, c1, c2)), combined: new Float32Array(triTris(c0, c1, c2)) });
+    pieces.push({ color: '#7ab897', net: new Float32Array(triTris(c1, c2, n0)), combined: new Float32Array(triTris(c1, c2, apex)) });
+    pieces.push({ color: '#7ab897', net: new Float32Array(triTris(c2, c0, n1)), combined: new Float32Array(triTris(c2, c0, apex)) });
+    pieces.push({ color: '#7ab897', net: new Float32Array(triTris(c0, c1, n2)), combined: new Float32Array(triTris(c0, c1, apex)) });
+    return pieces;
+  }
+function buildCubeSqPyramid() {
+    const V = [0.5, 0.5, 0.5];
+    const bases = [
+      [[-.5, -.5, -.5], [.5, -.5, -.5], [.5, -.5, .5], [-.5, -.5, .5]],
+      [[.5, -.5, -.5], [-.5, -.5, -.5], [-.5, .5, -.5], [.5, .5, -.5]],
+      [[-.5, -.5, -.5], [-.5, -.5, .5], [-.5, .5, .5], [-.5, .5, -.5]]
+    ];
+    const colors = ['#8fc9ac', '#7ab897', '#6aa885'];
+    const pieces = [];
+    bases.forEach(function (b, idx) {
+      const p0 = b[0], p1 = b[1], p2 = b[2], p3 = b[3];
+      const combTris = [];
+      combTris.push.apply(combTris, quadTris(p0, p1, p2, p3));
+      combTris.push.apply(combTris, triTris(p0, p1, V));
+      combTris.push.apply(combTris, triTris(p1, p2, V));
+      combTris.push.apply(combTris, triTris(p2, p3, V));
+      combTris.push.apply(combTris, triTris(p3, p0, V));
+
+      const cx = (p0[0] + p1[0] + p2[0] + p3[0]) / 4;
+      const cy = (p0[1] + p1[1] + p2[1] + p3[1]) / 4;
+      const cz = (p0[2] + p1[2] + p2[2] + p3[2]) / 4;
+      const centroid = new THREE.Vector3(cx, cy, cz);
+      const apexV = new THREE.Vector3(V[0], V[1], V[2]);
+      const up = apexV.clone().sub(centroid).normalize();
+      const q = new THREE.Quaternion().setFromUnitVectors(up, new THREE.Vector3(0, 1, 0));
+      const slotX = (idx - 1) * 1.65;
+
+      function tp(p) {
+        const vec = new THREE.Vector3(p[0], p[1], p[2]).sub(centroid).applyQuaternion(q);
+        vec.x += slotX; vec.y += -0.5;
+        return [vec.x, vec.y, vec.z];
+      }
+      const p0n = tp(p0), p1n = tp(p1), p2n = tp(p2), p3n = tp(p3), Vn = tp(V);
+      const netTris = [];
+      netTris.push.apply(netTris, quadTris(p0n, p1n, p2n, p3n));
+      netTris.push.apply(netTris, triTris(p0n, p1n, Vn));
+      netTris.push.apply(netTris, triTris(p1n, p2n, Vn));
+      netTris.push.apply(netTris, triTris(p2n, p3n, Vn));
+      netTris.push.apply(netTris, triTris(p3n, p0n, Vn));
+
+      pieces.push({ color: colors[idx], net: new Float32Array(netTris), combined: new Float32Array(combTris) });
+    });
+    return pieces;
+  }
+function buildTriangleHexagon() {
+    const R = 0.62, gap = 0.9;
+    const pieces = [];
+    for (let i = 0; i < 6; i++) {
+      const a0 = (i / 6) * Math.PI * 2, a1 = ((i + 1) / 6) * Math.PI * 2;
+      const O = [0, 0, 0];
+      const P1 = [R * Math.cos(a0), R * Math.sin(a0), 0];
+      const P2 = [R * Math.cos(a1), R * Math.sin(a1), 0];
+      const mid = (a0 + a1) / 2;
+      const offX = Math.cos(mid) * gap, offY = Math.sin(mid) * gap;
+      const netO = [offX, offY, 0];
+      const netP1 = [P1[0] + offX, P1[1] + offY, 0];
+      const netP2 = [P2[0] + offX, P2[1] + offY, 0];
+      pieces.push({
+        color: i % 2 === 0 ? '#8fc9ac' : '#7ab897',
+        net: new Float32Array(triTris(netO, netP1, netP2)),
+        combined: new Float32Array(triTris(O, P1, P2))
+      });
+    }
+    return pieces;
+  }
+
+  function buildRectCuboid(hx, hy, hz) {
+    const nFront = [[-hx, -hy, 0], [hx, -hy, 0], [hx, hy, 0], [-hx, hy, 0]];
+    const nRight = [[hx, -hy, 0], [hx + 2 * hz, -hy, 0], [hx + 2 * hz, hy, 0], [hx, hy, 0]];
+    const nLeft = [[-hx - 2 * hz, -hy, 0], [-hx, -hy, 0], [-hx, hy, 0], [-hx - 2 * hz, hy, 0]];
+    const nTop = [[-hx, hy, 0], [hx, hy, 0], [hx, hy + 2 * hz, 0], [-hx, hy + 2 * hz, 0]];
+    const nBottom = [[-hx, -hy - 2 * hz, 0], [hx, -hy - 2 * hz, 0], [hx, -hy, 0], [-hx, -hy, 0]];
+    const nBack = [[-hx, hy + 2 * hz, 0], [hx, hy + 2 * hz, 0], [hx, hy + 2 * hz + 2 * hy, 0], [-hx, hy + 2 * hz + 2 * hy, 0]];
+
+    const cFront = [[-hx, -hy, hz], [hx, -hy, hz], [hx, hy, hz], [-hx, hy, hz]];
+    const cRight = [[hx, -hy, hz], [hx, -hy, -hz], [hx, hy, -hz], [hx, hy, hz]];
+    const cLeft = [[-hx, -hy, -hz], [-hx, -hy, hz], [-hx, hy, hz], [-hx, hy, -hz]];
+    const cTop = [[-hx, hy, hz], [hx, hy, hz], [hx, hy, -hz], [-hx, hy, -hz]];
+    const cBottom = [[-hx, -hy, -hz], [hx, -hy, -hz], [hx, -hy, hz], [-hx, -hy, hz]];
+    const cBack = [[-hx, hy, -hz], [hx, hy, -hz], [hx, -hy, -hz], [-hx, -hy, -hz]];
+
+    const defs = [[nFront, cFront], [nRight, cRight], [nLeft, cLeft], [nTop, cTop], [nBottom, cBottom], [nBack, cBack]];
+    const palette = ['#8fc9ac', '#84c1a2', '#7ab897', '#84c1a2', '#7ab897', '#8fc9ac'];
+    return defs.map(function (pair, i) {
+      return {
+        color: palette[i],
+        net: new Float32Array(quadTris(pair[0][0], pair[0][1], pair[0][2], pair[0][3])),
+        combined: new Float32Array(quadTris(pair[1][0], pair[1][1], pair[1][2], pair[1][3]))
+      };
+    });
+  }
+function buildRightTriRect(w, h) {
+    const hw = w / 2, hh = h / 2;
+    const P0 = [-hw, -hh, 0], P1 = [hw, -hh, 0], P2 = [hw, hh, 0], P3 = [-hw, hh, 0];
+    const dx = P2[0] - P0[0], dy = P2[1] - P0[1];
+    const len = Math.hypot(dx, dy);
+    const perp = [-dy / len, dx / len, 0];
+    const gap = 0.5;
+    function off(p, s) { return [p[0] + perp[0] * s, p[1] + perp[1] * s, p[2]]; }
+    return [
+      { color: '#8fc9ac', net: new Float32Array(triTris(off(P0, gap), off(P1, gap), off(P2, gap))), combined: new Float32Array(triTris(P0, P1, P2)) },
+      { color: '#7ab897', net: new Float32Array(triTris(off(P0, -gap), off(P2, -gap), off(P3, -gap))), combined: new Float32Array(triTris(P0, P2, P3)) }
+    ];
+  }
+function buildTriParallelogram() {
+    const R = 1 / Math.sqrt(3), k = 0.8660254;
+    const c0 = [0, 0, R], c1 = [-R * k, 0, -R * 0.5], c2 = [R * k, 0, -R * 0.5];
+    const n0 = [0, 0, -2 * R];
+    const gap = 0.5;
+    function off(p, s) { return [p[0], p[1], p[2] + s]; }
+    return [
+      { color: '#8fc9ac', net: new Float32Array(triTris(off(c0, gap), off(c1, gap), off(c2, gap))), combined: new Float32Array(triTris(c0, c1, c2)) },
+      { color: '#7ab897', net: new Float32Array(triTris(off(c1, -gap), off(c2, -gap), off(n0, -gap))), combined: new Float32Array(triTris(c1, c2, n0)) }
+    ];
+  }
+function buildSphereHemi() {
+    const R = 0.62, rings = 8, segs = 16, gap = 0.9;
+    function hemiTris(flip) {
+      const tris = [];
+      for (let i = 0; i < rings; i++) {
+        const th0 = (i / rings) * (Math.PI / 2), th1 = ((i + 1) / rings) * (Math.PI / 2);
+        for (let j = 0; j < segs; j++) {
+          const ph0 = (j / segs) * Math.PI * 2, ph1 = ((j + 1) / segs) * Math.PI * 2;
+          function pt(theta, phi) {
+            const y = R * Math.cos(theta), rad = R * Math.sin(theta);
+            const x = rad * Math.cos(phi), z = rad * Math.sin(phi);
+            return flip ? [x, -y, z] : [x, y, z];
+          }
+          const p00 = pt(th0, ph0), p01 = pt(th0, ph1), p10 = pt(th1, ph0), p11 = pt(th1, ph1);
+          tris.push.apply(tris, quadTris(p00, p10, p11, p01));
+        }
+      }
+      for (let j = 0; j < segs; j++) {
+        const ph0 = (j / segs) * Math.PI * 2, ph1 = ((j + 1) / segs) * Math.PI * 2;
+        const c = [0, 0, 0], e0 = [R * Math.cos(ph0), 0, R * Math.sin(ph0)], e1 = [R * Math.cos(ph1), 0, R * Math.sin(ph1)];
+        tris.push.apply(tris, triTris(c, flip ? e1 : e0, flip ? e0 : e1));
+      }
+      return tris;
+    }
+    const topComb = hemiTris(false), botComb = hemiTris(true);
+    function translateY(arr, dy) { const out = arr.slice(); for (let k = 1; k < out.length; k += 3) out[k] += dy; return out; }
+    return [
+      { color: '#8fc9ac', net: new Float32Array(translateY(topComb, gap)), combined: new Float32Array(topComb) },
+      { color: '#7ab897', net: new Float32Array(translateY(botComb, -gap)), combined: new Float32Array(botComb) }
+    ];
+  }
+  
+  // Tetrahedron 
+  function buildCubeTetra6() {
+    const A = [-0.5, -0.5, -0.5], G = [0.5, 0.5, 0.5];
+    const x1 = [0.5, -0.5, -0.5], y1 = [-0.5, 0.5, -0.5], z1 = [-0.5, -0.5, 0.5];
+    const xy = [0.5, 0.5, -0.5], xz = [0.5, -0.5, 0.5], yz = [-0.5, 0.5, 0.5];
+    const tetras = [
+      [A, x1, xy, G], [A, x1, xz, G], [A, y1, xy, G],
+      [A, y1, yz, G], [A, z1, xz, G], [A, z1, yz, G]
+    ];
+    const gap = 1.3;
+    const palette = ['#8fc9ac', '#84c1a2', '#7ab897', '#79b494', '#6fab89', '#7fba98'];
+    return tetras.map(function (v, idx) {
+      const p0 = v[0], p1 = v[1], p2 = v[2], p3 = v[3];
+      const combined = [];
+      combined.push.apply(combined, triTris(p0, p1, p2));
+      combined.push.apply(combined, triTris(p0, p2, p3));
+      combined.push.apply(combined, triTris(p0, p3, p1));
+      combined.push.apply(combined, triTris(p1, p3, p2));
+      const cx = (p0[0] + p1[0] + p2[0] + p3[0]) / 4, cy = (p0[1] + p1[1] + p2[1] + p3[1]) / 4, cz = (p0[2] + p1[2] + p2[2] + p3[2]) / 4;
+      const len = Math.hypot(cx, cy, cz) || 1;
+      const dx = cx / len * gap, dy = cy / len * gap, dz = cz / len * gap;
+      function tr(p) { return [p[0] + dx, p[1] + dy, p[2] + dz]; }
+      const net = [];
+      net.push.apply(net, triTris(tr(p0), tr(p1), tr(p2)));
+      net.push.apply(net, triTris(tr(p0), tr(p2), tr(p3)));
+      net.push.apply(net, triTris(tr(p0), tr(p3), tr(p1)));
+      net.push.apply(net, triTris(tr(p1), tr(p3), tr(p2)));
+      return { color: palette[idx], net: new Float32Array(net), combined: new Float32Array(combined) };
+    });
+  }
+const ICONS = {
+    square: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg>',
+    cube: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 7.2 20 16.8 12 21 4 16.8 4 7.2Z"/><path d="M4 7.2 12 11.4 20 7.2M12 11.4V21"/></svg>',
+    circle: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="8"/></svg>',
+    cylinder: '<svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v11.8c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6"/></svg>',
+    triangle: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 4 20.5 20 3.5 20Z"/></svg>',
+    tetrahedron: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20.5 19 3.5 19Z"/><path d="M12 3 12 19M12 3 3.5 19M12 3 20.5 19"/></svg>',
+    hexagon: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 3 19.5 7.5 19.5 16.5 12 21 4.5 16.5 4.5 7.5Z"/></svg>',
+    prism: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3 18 6.2 18 17.8 12 21 6 17.8 6 6.2Z"/><path d="M6 6.2 12 9.4 18 6.2M12 9.4V21"/></svg>',
+    sqpyramid3: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 18H4Z"/><path d="M12 3 12 18M12 3 7 18M12 3 17 18"/></svg>',
+    rectangle: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="7" width="18" height="10" rx="1.5"/></svg>',
+    cuboid: '<svg viewBox="0 0 24 24" fill="none"><path d="M3 8 12 5 21 8 21 16 12 19 3 16Z"/><path d="M3 8 12 11 21 8M12 11V19"/></svg>',
+    parallelogram: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 6h12l-4 12H3Z"/></svg>',
+    sphere: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8"/><ellipse cx="12" cy="12" rx="8" ry="3"/></svg>',
+    hemisphere: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 13a8 8 0 0 1 16 0"/><ellipse cx="12" cy="13" rx="8" ry="2.4"/></svg>'
+  };
+
+  const SHAPES = {
+    square: { label: 'Square', dim: '2D' },
+    cube: { label: 'Cube', dim: '3D' },
+    circle: { label: 'Circle', dim: '2D' },
+    cylinder: { label: 'Cylinder', dim: '3D' },
+    triangle: { label: 'Triangle', dim: '2D' },
+    tetrahedron: { label: 'Tetrahedron', dim: '3D' },
+    hexagon: { label: 'Hexagon', dim: '2D' },
+    prism: { label: 'Hexagonal Prism', dim: '3D' },
+    sqpyramid3: { label: '3 Square Pyramids', dim: '3D' },
+    rectangle: { label: 'Rectangle', dim: '2D' },
+    cuboid: { label: 'Cuboid', dim: '3D' },
+    parallelogram: { label: 'Parallelogram', dim: '2D' },
+    sphere: { label: 'Sphere', dim: '3D' },
+    hemisphere: { label: '2 Hemispheres', dim: '3D' }
+  };
+
+  // Regular polygons
+  function polygonIcon(n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / n;
+      pts.push((12 + 8.5 * Math.cos(a)).toFixed(2) + ',' + (12 + 8.5 * Math.sin(a)).toFixed(2));
+    }
+    return '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="' + pts.join(' ') + '"/></svg>';
+  }
+
+  ICONS.pentagon = polygonIcon(5);
+  ICONS.heptagon = polygonIcon(7);
+  ICONS.octagon = polygonIcon(8);
+  ICONS.nonagon = polygonIcon(9);
+  ICONS.decagon = polygonIcon(10);
+  ICONS.trianglePrism = ICONS.prism;
+  ICONS.pentagonalPrism = ICONS.prism;
+  ICONS.heptagonalPrism = ICONS.prism;
+  ICONS.octagonalPrism = ICONS.prism;
+  ICONS.nonagonalPrism = ICONS.prism;
+  ICONS.decagonalPrism = ICONS.prism;
+
+  SHAPES.pentagon = { label: 'Regular Pentagon', dim: '2D' };
+  SHAPES.heptagon = { label: 'Regular Heptagon', dim: '2D' };
+  SHAPES.octagon = { label: 'Regular Octagon', dim: '2D' };
+  SHAPES.nonagon = { label: 'Regular Nonagon', dim: '2D' };
+  SHAPES.decagon = { label: 'Regular Decagon', dim: '2D' };
+  SHAPES.trianglePrism = { label: 'Triangular Prism', dim: '3D' };
+  SHAPES.pentagonalPrism = { label: 'Pentagonal Prism', dim: '3D' };
+  SHAPES.heptagonalPrism = { label: 'Heptagonal Prism', dim: '3D' };
+  SHAPES.octagonalPrism = { label: 'Octagonal Prism', dim: '3D' };
+  SHAPES.nonagonalPrism = { label: 'Nonagonal Prism', dim: '3D' };
+  SHAPES.decagonalPrism = { label: 'Decagonal Prism', dim: '3D' };
+
+  function fmla(title, intro, blocks, insight) {
+    let html = '<p class="fx-intro"><strong>' + title + '</strong><br>' + intro + '</p>';
+    blocks.forEach(function (b) {
+      html += '<div class="fx-block">';
+      html += '<span class="chip">' + b.chip + '</span>';
+      b.lines.forEach(function (l) { html += '<p class="fx-line">' + l + '</p>'; });
+      html += '<div class="fx-box">' + b.formula + '</div>';
+      html += '</div>';
+    });
+    html += '<div class="insight"> ' + insight + '</div>';
+    return html;
+  }
+
+  const PAIRS = [
+    {
+      a: 'square', b: 'cube',
+      build: buildSquareCube,
+      stepsForward: [
+        'Start with 6 equal squares arranged in a cross \u2014 the net of a cube.',
+        'The four side squares begin lifting along the edges they share with the base.',
+        'Left and right squares rise up to vertical, forming two walls.',
+        'The top square folds down to begin closing the lid.',
+        'The last square swings over to complete the sixth face.',
+        'Every edge lines up exactly, sealing the box.',
+        'Six squares now enclose one solid cube.'
+      ],
+      stepsReverse: [
+        'Start with one solid cube.',
+        'One face begins swinging outward along a shared edge.',
+        'Two more faces peel open, exposing the hollow inside.',
+        'The top face folds outward flat.',
+        'The side faces continue unfolding away from the base.',
+        'The last face lays flat, completing the cross shape.',
+        'Six equal squares now lie flat \u2014 the net of a cube.'
+      ],
+      formula: fmla('Square \u2192 Cube', 'Let the side of each square = a. When 6 such squares are joined edge-to-edge, they enclose a cube of side a.', [
+        { chip: 'Surface Area', lines: ['Area of one square face = a\u00B2', 'A cube has 6 such faces.'], formula: 'Surface Area = 6a\u00B2' },
+        { chip: 'Volume', lines: ['Each face encloses one side of a 3D space.', 'Volume of a cube with side a:'], formula: 'Volume = a\u00B3' }
+      ], '6 square faces joined along their edges enclose a 3D space \u2014 a cube!'),
+      explanation: '<p>A cube is the 3D shape you get when 6 identical squares are stitched together edge-to-edge so that every edge is shared by exactly two faces, and the faces close up with no gaps or overlaps.</p><p>This is why a cube\u2019s surface area is always <em>6 times</em> the area of one face \u2014 you\u2019re just counting the same square, six times over. Try unfolding a cardboard box some time: you\u2019ll get exactly this cross-shaped net back.</p>'
+    },
+    {
+      a: 'circle', b: 'cylinder',
+      build: function () { return buildDiscPrism(40, 0.62, 1.05, 1.15); },
+      stepsForward: [
+        'Start with two circles of radius r and a flat rectangular strip.',
+        'The rectangle\u2019s height already equals the cylinder\u2019s height h.',
+        'The strip begins curling along its height.',
+        'It curls further, its two ends approaching each other.',
+        'The ends meet, forming a tube of radius r.',
+        'The circles slide in to cap the top and bottom.',
+        'Two circles and a rectangle now enclose one solid cylinder.'
+      ],
+      stepsReverse: [
+        'Start with one solid cylinder.',
+        'The top and bottom circles lift away from the tube.',
+        'The curved surface begins to peel open along a seam.',
+        'It unrolls further, straightening out.',
+        'It flattens completely into a rectangle.',
+        'The rectangle settles flat, height h, width equal to the circle\u2019s circumference.',
+        'Two circles and a rectangle now lie flat \u2014 the net of a cylinder.'
+      ],
+      formula: fmla('Circle \u2192 Cylinder', 'Let the radius = r and the height = h. Unroll the curved surface and its width turns out to be the circle\u2019s own circumference.', [
+        { chip: 'Curved Surface', lines: ['Circumference of the circle = 2\u03C0r', 'That becomes the width of the unrolled rectangle.'], formula: 'Curved Surface Area = 2\u03C0rh' },
+        { chip: 'Total Surface Area', lines: ['Add the two circular caps, area \u03C0r\u00B2 each.'], formula: 'Surface Area = 2\u03C0rh + 2\u03C0r\u00B2' },
+        { chip: 'Volume', lines: ['Base area \u00D7 height.'], formula: 'Volume = \u03C0r\u00B2h' }
+      ], 'Unroll a cylinder and its curved surface becomes a plain rectangle \u2014 that\u2019s exactly why circumference (2\u03C0r) shows up in every cylinder formula.'),
+      explanation: '<p>A cylinder is what you get when a rectangle is wrapped around until its two vertical edges meet, then capped on both ends with a circle whose circumference matches the rectangle\u2019s width.</p><p>This single idea \u2014 that the "unrolled" side of a cylinder is a rectangle \u2014 is the reason 2\u03C0r appears throughout its formulas: it\u2019s just the rectangle\u2019s width in disguise.</p>'
+    },
+    {
+      a: 'triangle', b: 'tetrahedron',
+      build: buildTriangleTetra,
+      stepsForward: [
+        'Start with 4 equal equilateral triangles arranged as one big triangle \u2014 the net.',
+        'The three outer triangles begin lifting along the edges they share with the centre.',
+        'They tilt upward, their far corners rising off the ground.',
+        'The rising corners swing closer together above the base.',
+        'All three corners approach a single point overhead.',
+        'The corners meet exactly, closing the last seams.',
+        'Four triangles now enclose one solid tetrahedron.'
+      ],
+      stepsReverse: [
+        'Start with one solid tetrahedron.',
+        'One face begins swinging outward along a shared edge.',
+        'A second face peels open away from the base.',
+        'The third face unfolds outward too.',
+        'All three faces continue rotating flat.',
+        'The corners spread apart, flattening the shape.',
+        'Four equal triangles now lie flat \u2014 the net of a tetrahedron.'
+      ],
+      formula: fmla('Triangle \u2192 Tetrahedron', 'Let the edge of each triangle = a. A regular tetrahedron is bounded by 4 identical equilateral triangles.', [
+        { chip: 'Surface Area', lines: ['Area of 1 equilateral triangle = (\u221A3/4)a\u00B2', 'A tetrahedron has 4 such faces.'], formula: 'Surface Area = \u221A3\u2009a\u00B2' },
+        { chip: 'Volume', lines: ['Height from base to the opposite apex = a\u221A(2/3).'], formula: 'Volume = a\u00B3 / (6\u221A2)' }
+      ], 'All 4 faces of a regular tetrahedron are identical equilateral triangles \u2014 that symmetry is what makes it "regular".'),
+      explanation: '<p>A tetrahedron is the simplest of all 3D solids: just 4 triangular faces, 4 corners, and 6 edges. Fold one triangle\u2019s three neighbours up until their far corners meet at a single point above the base, and you\u2019ve built a tetrahedron.</p><p>Because every face is the same equilateral triangle, a tetrahedron is one of only five "Platonic solids" \u2014 shapes built from one repeated regular polygon.</p>'
+    },
+    {
+      a: 'sqpyramid3', b: 'cube',
+      build: buildCubeSqPyramid,
+      stepsForward: [
+        'Start with 3 identical square pyramids, each standing on its base.',
+        'Each pyramid has a square base of side a and height a.',
+        'The pyramids slide toward a shared corner point.',
+        'Their apexes converge onto a single vertex.',
+        'Their slanted faces begin lining up edge-to-edge.',
+        'The three pyramids nest together with no gaps or overlaps.',
+        'Three square pyramids now fill one solid cube exactly.'
+      ],
+      stepsReverse: [
+        'Start with one solid cube of side a.',
+        'Pick one corner of the cube \u2014 call it the anchor vertex.',
+        'The 3 faces that don\u2019t touch that corner become 3 separate pyramid bases.',
+        'Each base pairs with the anchor vertex to form a square pyramid.',
+        'The three pyramids separate, each still holding its share of the volume.',
+        'Laid out, you can see each pyramid has a square base and height a.',
+        'Three identical square pyramids \u2014 together they held exactly one cube.'
+      ],
+      formula: fmla('Cube \u2192 3 Square Pyramids', 'Let the cube\u2019s side = a. Pick one corner; the 3 faces not touching it become the bases of 3 pyramids that all share that corner as their apex.', [
+        { chip: 'One Pyramid', lines: ['Volume of a pyramid = \u2153 \u00D7 base area \u00D7 height', '= \u2153 \u00D7 a\u00B2 \u00D7 a'], formula: 'Volume = a\u00B3/3' },
+        { chip: 'All Three', lines: ['Three identical pyramids fill the cube completely.'], formula: '3 \u00D7 (a\u00B3/3) = a\u00B3' }
+      ], 'This is the classic geometric proof that a pyramid\u2019s volume is \u2153 of a prism sharing its base and height. Want to see it split into actual triangular-faced tetrahedra instead? Try the Cube \u2194 Tetrahedron pair \u2014 that one takes exactly 6 pieces, not 3.'),
+      explanation: '<p>Pick any corner of a cube. The three faces that <em>don\u2019t</em> touch that corner can each be paired with it to form a square pyramid \u2014 and those three pyramids exactly fill the cube with no gaps or overlaps.</p><p>It\u2019s a neat, hands-on way to see why a pyramid\u2019s volume formula carries a factor of \u2153: three equal pyramids make one whole cube (or more generally, one whole prism).</p>'
+    },
+    {
+      a: 'tetrahedron', b: 'cube',
+      build: buildCubeTetra6,
+      stepsForward: [
+        'Start with 6 identical tetrahedra, spread apart.',
+        'Each one is a \u2018right tetrahedron\u2019 \u2014 not the equilateral kind.',
+        'They begin sliding together toward a shared long edge.',
+        'That shared edge will become the cube\u2019s main diagonal.',
+        'Faces start lining up together with no gaps.',
+        'The last few faces click into place.',
+        'Six tetrahedra now fill one solid cube exactly.'
+      ],
+      stepsReverse: [
+        'Start with one solid cube.',
+        'Pick two opposite corners and draw the diagonal that joins them.',
+        'That diagonal is a shared edge for 6 tetrahedra hiding inside the cube.',
+        'Split the cube along the diagonal\u2019s 6 monotone paths across its edges.',
+        'Pull the 6 pieces apart \u2014 each is a tetrahedron with 4 triangular faces.',
+        'All 6 are the same shape and exactly the same volume.',
+        'Six tetrahedra, pulled apart \u2014 together they filled exactly one cube.'
+      ],
+      formula: fmla('Cube \u2192 6 Tetrahedra', 'Let the cube\u2019s side = a. Slice it along one space diagonal and its 6 connecting edge-paths, and it splits into 6 identical tetrahedra.', [
+        { chip: 'One Tetrahedron', lines: ['Each of the 6 pieces has the same volume.', 'Volume of cube \u00F7 6:'], formula: 'Volume = a\u00B3/6' },
+        { chip: 'All Six', lines: ['Six identical tetrahedra tile the cube completely.'], formula: '6 \u00D7 (a\u00B3/6) = a\u00B3' }
+      ], 'A cube can\u2019t be split into fewer than 5 tetrahedra, and the neat, all-identical version takes exactly 6 \u2014 not 3! (For comparison, the Cube \u2194 3 Square Pyramids pair uses only 3 pieces, but those have square bases, not triangular ones \u2014 they\u2019re pyramids, not tetrahedra.)'),
+      explanation: '<p>These aren\u2019t the same tetrahedra you get from the Triangle \u2194 Tetrahedron pair. Those are <em>regular</em> tetrahedra \u2014 all 4 faces are identical equilateral triangles. These are <em>right</em> tetrahedra: each one is built from a cube corner, its diagonally opposite corner, and two more corners along the way between them, so their faces are right triangles of different sizes, not equilateral ones.</p><p>Pick any two opposite corners of a cube and the six ways to \u201cwalk\u201d between them one axis at a time (x-then-y-then-z, y-then-x-then-z, and so on) each trace out one of these six tetrahedra \u2014 and together they tile the whole cube with no gaps or overlaps.</p>'
+    },
+    {
+      a: 'rectangle', b: 'cuboid',
+      build: function () { return buildRectCuboid(0.6, 0.35, 0.45); },
+      stepsForward: [
+        'Start with 6 rectangles arranged in a cross \u2014 the net of a cuboid.',
+        'The four side rectangles begin lifting along the edges they share with the base.',
+        'Left and right rectangles rise up to vertical, forming two walls.',
+        'The top rectangle folds down to begin closing the lid.',
+        'The last rectangle swings over to complete the sixth face.',
+        'Every edge lines up exactly, even though the rectangles aren\u2019t all the same size.',
+        'Six rectangles now enclose one solid cuboid.'
+      ],
+      stepsReverse: [
+        'Start with one solid cuboid.',
+        'One face begins swinging outward along a shared edge.',
+        'Two more faces peel open, exposing the hollow inside.',
+        'The top face folds outward flat.',
+        'The side faces continue unfolding away from the base.',
+        'The last face lays flat, completing the cross shape.',
+        'Six rectangles now lie flat \u2014 three matching pairs, forming the net of a cuboid.'
+      ],
+      formula: fmla('Rectangle \u2192 Cuboid', 'Let the cuboid have length l, width w, and height h. Its net is 6 rectangles \u2014 three matching pairs, one pair per dimension.', [
+        { chip: 'Surface Area', lines: ['Each pair of opposite faces shares an area: lw, wh, and hl.', 'Add up all 6 faces (2 of each pair).'], formula: 'Surface Area = 2(lw + wh + hl)' },
+        { chip: 'Volume', lines: ['Length \u00D7 width \u00D7 height.'], formula: 'Volume = lwh' }
+      ], 'A cube is just a cuboid where l = w = h \u2014 that\u2019s why the cube formulas (6a\u00B2 and a\u00B3) are special cases of these.'),
+      explanation: '<p>A cuboid is what you get when 6 rectangles \u2014 in 3 matching pairs \u2014 are joined edge-to-edge so every edge is shared by exactly two faces. It\u2019s the same idea as folding a cube from 6 squares, just with the restriction that opposite faces have to match relaxed to "any rectangle."</p><p>Every cardboard shipping box is a cuboid net in disguise: unfold one along its taped edges and you\u2019ll see exactly this cross shape, just stretched unevenly instead of perfectly square.</p>'
+    },
+    {
+      a: 'triangle', b: 'parallelogram',
+      build: buildTriParallelogram,
+      stepsForward: [
+        'Start with 2 congruent equilateral triangles, separated.',
+        'They begin sliding toward each other.',
+        'One edge of each triangle starts to line up with the other.',
+        'The triangles keep closing the gap between them.',
+        'The shared edge is almost fully touching.',
+        'The edges meet exactly, with no gap or overlap.',
+        'Two equilateral triangles now form one solid rhombus.'
+      ],
+      stepsReverse: [
+        'Start with one solid rhombus.',
+        'A crack opens along the shorter diagonal.',
+        'The crack splits the rhombus further apart.',
+        'Two triangular halves start separating.',
+        'The gap between them keeps widening.',
+        'They pull further apart, each a mirror of the other.',
+        'One rhombus has become 2 congruent equilateral triangles.'
+      ],
+      formula: fmla('Triangle \u2192 Parallelogram', 'Let the triangle\u2019s side = a. Two equilateral triangles joined along one edge form a rhombus \u2014 a parallelogram with all 4 sides equal to a.', [
+        { chip: 'Area', lines: ['Area of 1 equilateral triangle = (\u221A3/4)a\u00B2', 'Two of them make the rhombus.'], formula: 'Area of Rhombus = (\u221A3/2)a\u00B2' }
+      ], 'Any two congruent triangles joined along a matching edge make some parallelogram \u2014 that\u2019s true for right triangles (giving a rectangle) just as much as equilateral ones (giving this rhombus).'),
+      explanation: '<p>Take any triangle, make a second copy, rotate it 180\u00B0, and glue it to the first along one shared edge \u2014 the result is always a parallelogram. With a right triangle that parallelogram happens to be a rectangle; with an equilateral triangle, since all 3 sides are equal, it comes out as a rhombus (a parallelogram with all 4 sides the same length).</p><p>This is the same underlying idea as Right Triangle \u2194 Rectangle, just with a different starting triangle \u2014 which is why both pairs are here.</p>'
+    },
+    {
+      a: 'hemisphere', b: 'sphere',
+      build: buildSphereHemi,
+      stepsForward: [
+        'Start with 2 solid hemispheres, one above, one below.',
+        'They begin sliding toward each other.',
+        'Their flat circular faces start to line up.',
+        'The gap between the flat faces keeps closing.',
+        'The circles are almost touching all the way around.',
+        'The flat faces meet exactly, with no gap.',
+        'Two hemispheres now form one solid sphere.'
+      ],
+      stepsReverse: [
+        'Start with one solid sphere.',
+        'A crack opens around the equator.',
+        'The crack splits the sphere into two halves.',
+        'The top half begins lifting away.',
+        'The bottom half begins dropping away.',
+        'The gap between the two halves keeps widening.',
+        'One sphere has become 2 solid hemispheres.'
+      ],
+      formula: fmla('Sphere \u2192 2 Hemispheres', 'Let the sphere\u2019s radius = r. Slice it exactly through the centre and you get 2 identical hemispheres.', [
+        { chip: 'Volume', lines: ['Volume of 1 hemisphere = \u2154 \u00D7 \u03C0r\u00B3', 'Two of them make the full sphere.'], formula: 'Volume of Sphere = \u2074\u2044\u2083\u03C0r\u00B3' },
+        { chip: 'Surface Area', lines: ['Curved part of 1 hemisphere = 2\u03C0r\u00B2', 'The flat circular faces meet inside and disappear.'], formula: 'Surface Area of Sphere = 4\u03C0r\u00B2' }
+      ], 'Archimedes\u2019 own favourite proof: a hemisphere\u2019s volume is exactly \u2154 of the cylinder that wraps tightly around it \u2014 which is exactly where the sphere\u2019s famous 4/3 comes from.'),
+      explanation: '<p>Slice a sphere exactly through its centre and both halves are hemispheres \u2014 solid half-balls with one curved face and one flat circular face. Push the two flat faces back together and you rebuild the whole sphere with no gap.</p><p>Unlike a cube or cylinder, a sphere is curved in every direction at once, so it has no flat "net" you could fold from paper \u2014 splitting it into matching solid pieces, as shown here, is the closest equivalent.</p>'
+    },
+    {
+      a: 'hexagon', b: 'prism',
+      build: function () { return buildDiscPrism(6, 0.62, 1.0, 1.15); },
+      stepsForward: [
+        'Start with 2 regular hexagons and 6 rectangles forming the net.',
+        'The rectangles begin folding upward along the hexagon\u2019s edges.',
+        'Neighbouring rectangles tilt toward one another.',
+        'The ring of rectangles curls into a hexagonal tube.',
+        'The two open ends line up, ready to be capped.',
+        'The second hexagon settles into place as the lid.',
+        'Two hexagons and six rectangles now enclose one solid hexagonal prism.'
+      ],
+      stepsReverse: [
+        'Start with one solid hexagonal prism.',
+        'The top and bottom hexagons lift away.',
+        'The six side faces begin peeling open along their seams.',
+        'The ring of faces unrolls further.',
+        'It flattens out into six separate rectangles.',
+        'The rectangles settle flat around the unfolded ring.',
+        'Two hexagons and six rectangles now lie flat \u2014 the net of a hexagonal prism.'
+      ],
+      formula: fmla('Hexagon \u2192 Hexagonal Prism', 'Let the hexagon\u2019s side = a and the prism\u2019s height = h.', [
+        { chip: 'Base Area', lines: ['Area of a regular hexagon:'], formula: 'Base Area = (3\u221A3/2) a\u00B2' },
+        { chip: 'Surface Area', lines: ['Perimeter \u00D7 height, plus the 2 hexagonal bases.'], formula: 'Surface Area = 6ah + 3\u221A3\u2009a\u00B2' },
+        { chip: 'Volume', lines: ['Base area \u00D7 height.'], formula: 'Volume = (3\u221A3/2) a\u00B2h' }
+      ], 'Any prism\u2019s volume is just base area \u00D7 height \u2014 true whether the base is a triangle, a hexagon, or any polygon at all.'),
+      explanation: '<p>A hexagonal prism is built the same way a cylinder is, just with a hexagon standing in for the circle: two flat hexagonal caps, joined by six flat rectangular sides folded up around the edge.</p><p>Because a hexagon\u2019s perimeter is made of 6 straight sides instead of one curved edge, its "unrolled" side surface is 6 separate rectangles rather than 1 \u2014 but the underlying idea, base \u00D7 height for volume, is identical to the cylinder.</p>'
+    },
+    {
+      a: 'triangle', b: 'hexagon',
+      build: buildTriangleHexagon,
+      stepsForward: [
+        'Start with 6 separate equilateral triangles, spread out around a point.',
+        'The triangles begin sliding inward toward the centre.',
+        'Neighbouring triangles start touching along one edge.',
+        'More edges come together, closing the gaps between them.',
+        'Only a sliver of space is left between the triangles.',
+        'The last gap closes up.',
+        'Six triangles now form one solid hexagon, meeting exactly at the centre.'
+      ],
+      stepsReverse: [
+        'Start with one solid hexagon.',
+        'A crack opens from the centre toward one corner.',
+        'Two more cracks appear, splitting off more triangles.',
+        'The triangles begin sliding apart from the centre.',
+        'The gaps between them widen further.',
+        'The triangles spread out toward their own space.',
+        'One hexagon has become 6 separate equilateral triangles.'
+      ],
+      formula: fmla('Triangle \u2192 Hexagon', 'Let the triangle\u2019s side = a. A regular hexagon with side a is exactly 6 such triangles, meeting at the centre.', [
+        { chip: 'Area', lines: ['Area of 1 equilateral triangle = (\u221A3/4)a\u00B2', 'A hexagon is 6 such triangles.'], formula: 'Area of Hexagon = (3\u221A3/2)a\u00B2' }
+      ], 'A regular hexagon\u2019s side is always equal to its own circumradius \u2014 which is exactly why it splits perfectly into 6 equilateral triangles fanned out from the centre.'),
+      explanation: '<p>Draw a line from the centre of a regular hexagon to each of its 6 corners, and you get 6 identical equilateral triangles. That\u2019s not a coincidence of this particular hexagon \u2014 it\u2019s true for every regular hexagon, because a regular hexagon\u2019s side length always equals the distance from its centre to a corner.</p><p>It\u2019s why the hexagon\u2019s area formula is simply 6 times a single triangle\u2019s area, and it\u2019s the same reason honeycomb cells and hex-grid tiles fit together with no gaps.</p>'
+    }
+  ];
+
+  for (let i = PAIRS.length - 1; i >= 0; i--) {
+    const pair = PAIRS[i];
+    if ((pair.a === 'square' && pair.b === 'cube') ||
+        (pair.a === 'cube' && pair.b === 'square') ||
+        (pair.a === 'hexagon' && pair.b === 'prism') ||
+        (pair.a === 'prism' && pair.b === 'hexagon')) {
+      PAIRS.splice(i, 1);
+    }
+  }
+
+  const TRIANGLE_POLYGON_PAIRS = [
+    ['triangle', 'square', 4, 'Square', 'square'],
+    ['triangle', 'rectangle', 4, 'Rectangle', 'rectangle'],
+    ['triangle', 'pentagon', 5, 'Pentagon', 'regular'],
+    ['triangle', 'hexagon', 6, 'Hexagon', 'regular'],
+    ['triangle', 'heptagon', 7, 'Heptagon', 'regular'],
+    ['triangle', 'octagon', 8, 'Octagon', 'regular'],
+    ['triangle', 'nonagon', 9, 'Nonagon', 'regular'],
+    ['triangle', 'decagon', 10, 'Decagon', 'regular']
+  ];
+
+  TRIANGLE_POLYGON_PAIRS.forEach(function (cfg) {
+    const a = cfg[0], b = cfg[1], n = cfg[2], label = cfg[3], kind = cfg[4];
+    const pieceText = (kind === 'square' || kind === 'rectangle')
+      ? '2 right-angle triangles'
+      : n + ' congruent triangles';
+    const builder = function () {
+      return buildTrianglePolygon(n, kind, b === 'rectangle' ? 1.35 : 1.2, b === 'rectangle' ? 0.72 : 1.2);
+    };
+    const areaText = kind === 'rectangle'
+      ? 'Area = l × w = 2 × (½lw)'
+      : kind === 'square'
+        ? 'Area = a² = 2 × (½a²)'
+        : 'Area = ' + n + ' × area of one triangle';
+
+    PAIRS.push({
+      a: a, b: b,
+      build: builder,
+      stepsForward: [
+        'Start with ' + pieceText + ' separated around the target shape.',
+        kind === 'regular' ? ('The ' + n + ' triangles move toward the centre of the ' + label.toLowerCase() + '.') : 'The two triangular pieces slide toward the shared diagonal.',
+        kind === 'regular' ? 'Their centre vertices meet and the outer edges begin lining up.' : 'The long diagonal edges begin lining up.',
+        kind === 'regular' ? 'Neighbouring triangle edges meet one by one around the boundary.' : 'The two right-angle triangles close together along the diagonal.',
+        kind === 'regular' ? 'The final boundary edges close with no gaps or overlaps.' : 'All four outer edges now form the rectangle boundary.',
+        'Every piece is aligned exactly with the others.',
+        pieceText.charAt(0).toUpperCase() + pieceText.slice(1) + ' now form one ' + label.toLowerCase() + '.'
+      ],
+      stepsReverse: [
+        'Start with one ' + label.toLowerCase() + '.',
+        kind === 'regular' ? ('Lines from the centre to the ' + n + ' vertices begin separating the polygon into triangles.') : 'The diagonal opens, revealing the two triangular halves.',
+        kind === 'regular' ? 'The triangular sectors begin pulling away from the centre.' : 'One triangular half slides away from the other.',
+        kind === 'regular' ? 'The gaps between the ' + n + ' triangles widen.' : 'The two pieces separate further.',
+        kind === 'regular' ? 'All ' + n + ' triangles are now visibly distinct.' : 'Both right-angle triangles are fully separated.',
+        'The pieces move into clear, separate positions.',
+        label + ' has become ' + pieceText + '.'
+      ],
+      formula: fmla('Triangle → ' + label,
+        kind === 'regular'
+          ? ('A regular ' + label.toLowerCase() + ' can be divided by joining its centre to every vertex.')
+          : ('The ' + label.toLowerCase() + ' is split by one diagonal into 2 congruent right-angle triangles.'),
+        [
+          { chip: 'Area', lines: [areaText], formula: kind === 'rectangle' ? 'Area = lw' : kind === 'square' ? 'Area = a²' : 'Area = n × (area of one triangle)' }
+        ],
+        kind === 'regular'
+          ? ('A regular ' + label.toLowerCase() + ' has exactly ' + n + ' sides, so joining its centre to every vertex creates exactly ' + n + ' triangular pieces.')
+          : ('A single diagonal divides a ' + label.toLowerCase() + ' into exactly 2 congruent right-angle triangles.')),
+      explanation: kind === 'regular'
+        ? ('<p>A regular ' + label.toLowerCase() + ' naturally splits into ' + n + ' congruent triangles when its centre is joined to all its vertices.</p><p>The pattern is simple: the number of triangular pieces equals the number of sides.</p>')
+        : ('<p>A diagonal divides a ' + label.toLowerCase() + ' into 2 congruent right-angle triangles.</p><p>The UI keeps only one generic Triangle option; there is no separate Right Triangle shape.</p>')
+    });
+  });
+  
+  // right regular prism
+  const REGULAR_POLYGON_PRISMS = [
+    ['triangle', 'trianglePrism', 3, 'Triangle', 'Triangular Prism'],
+    ['square', 'cube', 4, 'Square', 'Cube'],
+    ['pentagon', 'pentagonalPrism', 5, 'Pentagon', 'Pentagonal Prism'],
+    ['hexagon', 'prism', 6, 'Hexagon', 'Hexagonal Prism'],
+    ['heptagon', 'heptagonalPrism', 7, 'Heptagon', 'Heptagonal Prism'],
+    ['octagon', 'octagonalPrism', 8, 'Octagon', 'Octagonal Prism'],
+    ['nonagon', 'nonagonalPrism', 9, 'Nonagon', 'Nonagonal Prism'],
+    ['decagon', 'decagonalPrism', 10, 'Decagon', 'Decagonal Prism']
+  ];
+
+  REGULAR_POLYGON_PRISMS.forEach(function (cfg) {
+    const a = cfg[0], b = cfg[1], n = cfg[2], label2D = cfg[3], label3D = cfg[4];
+    const baseFormula = 'A = (ns²/4) cot(π/n)';
+    const baseArea = 'Base Area = (ns²/4) cot(π/n)';
+    const sideFaces = 'Lateral Area = n s h';
+    const totalArea = 'Surface Area = (ns²/2) cot(π/n) + n s h';
+    const volume = 'Volume = (ns²h/4) cot(π/n)';
+    const builder = function () { return buildRegularPolygonPrism(n, 1, 1, 1.15); };
+
+    PAIRS.push({
+      a: a, b: b,
+      build: builder,
+      stepsForward: [
+        'Start with 2 regular ' + label2D.toLowerCase() + 's and ' + n + ' rectangles forming the net.',
+        'The ' + n + ' rectangular side faces begin folding upward along the polygon edges.',
+        'The side faces rise and start forming a regular prism around the base.',
+        'Neighbouring rectangles meet edge-to-edge to close the side wall.',
+        'The top polygon moves into alignment with the open end.',
+        'All corresponding edges line up with no gaps or overlaps.',
+        'Two regular ' + label2D.toLowerCase() + 's and ' + n + ' rectangles enclose one ' + label3D.toLowerCase() + '.'
+      ],
+      stepsReverse: [
+        'Start with one ' + label3D.toLowerCase() + '.',
+        'The top and bottom polygonal bases begin separating from the side wall.',
+        'The rectangular side faces start peeling outward along their seams.',
+        'The ring of ' + n + ' rectangles continues unrolling.',
+        'The side faces flatten into a row of rectangles.',
+        'The two regular polygon bases settle flat on either side.',
+        'The complete net of the ' + label3D.toLowerCase() + ' is now visible.'
+      ],
+      formula: fmla(label2D + ' → ' + label3D,
+        'Let each polygon side = s and the prism height = h. A regular n-gon has n equal sides and n equal central sectors.',
+        [
+          { chip: 'Regular Polygon Area', lines: ['The apothem is a = (s/2) cot(π/n).', 'Area = ½ × perimeter × apothem.'], formula: baseFormula },
+          { chip: 'Surface Area', lines: ['There are two polygonal bases.', 'The n side rectangles contribute n s h.'], formula: totalArea },
+          { chip: 'Volume', lines: ['Volume = base area × prism height.'], formula: volume }
+        ],
+        'The same derivation works for every regular polygon: split the base into n congruent triangles, then multiply the base area by the prism height.'),
+      explanation: '<p>A right regular prism is formed by placing an identical regular polygon directly above the first one and joining corresponding vertices with rectangles.</p><p>This lets the same area-and-volume reasoning work from a triangle all the way to a decagon. As n increases, the polygon becomes closer to a circle, while the prism keeps the same base-area × height structure.</p>'
+    });
+  });
+  
+  for (let i = PAIRS.length - 1; i >= 0; i--) {
+    if ((PAIRS[i].a === 'square' && PAIRS[i].b === 'cube') ||
+        (PAIRS[i].a === 'cube' && PAIRS[i].b === 'square')) {
+      PAIRS.splice(i, 1);
+    }
+  }
+
+  PAIRS.push({
+    a: 'square', b: 'cube',
+    build: buildSquareCube,
+    stepsForward: [
+      'Start with 6 identical squares arranged as the net of a cube.',
+      'The four side squares begin folding upward along the base edges.',
+      'The left and right squares rise to form two walls.',
+      'The front and back squares fold up to complete the four walls.',
+      'The top square swings upward toward the open face.',
+      'The final square closes the remaining opening.',
+      'Six equal squares now enclose one solid cube.'
+    ],
+    stepsReverse: [
+      'Start with one solid cube made from 6 equal square faces.',
+      'The top square begins opening away from the cube.',
+      'The front and back square faces unfold outward.',
+      'The left and right square faces flatten along their hinges.',
+      'The four side squares continue rotating into one plane.',
+      'The final square settles beside the central square.',
+      'Six equal squares now lie flat as the cube net.'
+    ],
+    formula: fmla('Square → Cube',
+      'Let the side of each square = a. A cube has 6 identical square faces.',
+      [
+        { chip: 'Surface Area', lines: ['Area of one square = a².', 'A cube has 6 square faces.'], formula: 'Surface Area = 6a²' },
+        { chip: 'Volume', lines: ['A cube has length a, width a and height a.'], formula: 'Volume = a³' }
+      ],
+      'The cube is made from exactly 6 squares. Because every edge length is a, all six faces are congruent squares.'),
+    explanation: '<p>A cube is the special case where all six faces are squares. Its net can therefore be made from 6 identical squares joined edge-to-edge.</p><p>Unlike a general square-based prism, there are no rectangular side faces here: every one of the 6 faces is a square. This is why the surface area is 6a².</p>'
+  });
+
+  const PAIR_MAP = {};
+  const ADJ = {};
+  PAIRS.forEach(function (p) {
+    const key = [p.a, p.b].slice().sort().join('__');
+    PAIR_MAP[key] = p;
+    (ADJ[p.a] = ADJ[p.a] || []).push(p.b);
+    (ADJ[p.b] = ADJ[p.b] || []).push(p.a);
+  });
+
+  // morph
+  function getPair(from, to) {
+    if (from === to) return null;
+    const key = [from, to].slice().sort().join('__');
+    const p = PAIR_MAP[key];
+    if (!p) return null;
+    return { pair: p, forward: p.a === from };
+  }
+
+  window.ShapeLab = { SHAPES: SHAPES, ICONS: ICONS, PAIRS: PAIRS, ADJ: ADJ, getPair: getPair, centerPieces: centerPieces, easeInOutCubic: easeInOutCubic, clamp: clamp };
+function Engine(container) {
+    this.container = container;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 50);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    container.appendChild(this.renderer.domElement);
+
+    this.world = new THREE.Group();
+    this.inner = new THREE.Group();
+    this.world.add(this.inner);
+    this.scene.add(this.world);
+
+    const amb = new THREE.AmbientLight(0xffffff, 0.75);
+    this.scene.add(amb);
+    const key = new THREE.DirectionalLight(0xffffff, 0.9);
+    key.position.set(3, 4, 4);
+    this.scene.add(key);
+    const rim = new THREE.DirectionalLight(0xbfe3cf, 0.5);
+    rim.position.set(-3, -2, -3);
+    this.scene.add(rim);
+
+    this.meshes = [];
+    this.pieces = [];
+    this.dragging = false;
+    this.lastX = 0; this.lastY = 0;
+    this.rotY = -0.55; this.rotX = 0.28;
+    this.netDist = 3.2; this.combDist = 2.4; this.autoDist = 3.0;
+    this.netOffset = new THREE.Vector3(0, 0, 0);
+    this.camTarget = new THREE.Vector3(0, 0, 0);
+    this.zoomMul = 1;
+    this.idleSpin = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    this._bind();
+    this._resize();
+    this._tick = this._tick.bind(this);
+    requestAnimationFrame(this._tick);
+  }
+
+  Engine.prototype._bind = function () {
+    const el = this.renderer.domElement;
+    const self = this;
+    el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', function (e) {
+      self.dragging = true; self.idleSpin = false;
+      self.lastX = e.clientX; self.lastY = e.clientY;
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!self.dragging) return;
+      const dx = e.clientX - self.lastX, dy = e.clientY - self.lastY;
+      self.lastX = e.clientX; self.lastY = e.clientY;
+      self.rotY += dx * 0.007;
+      self.rotX = Math.max(-0.55, Math.min(1.0, self.rotX + dy * 0.007));
+    });
+    el.addEventListener('pointerup', function () { self.dragging = false; });
+    el.addEventListener('pointerleave', function () { self.dragging = false; });
+    el.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      self.zoomMul = Math.max(0.55, Math.min(1.9, self.zoomMul + e.deltaY * 0.0011));
+    }, { passive: false });
+    window.addEventListener('resize', function () { self._resize(); });
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { self._resize(); }).observe(this.container);
+    }
+  };
+
+  Engine.prototype._resize = function () {
+    const w = this.container.clientWidth, h = this.container.clientHeight;
+    if (!w || !h) return;
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h, false);
+  };
+
+  Engine.prototype.load = function (pair) {
+    this.meshes.forEach(function (m) { m.geometry.dispose(); m.material.dispose(); });
+    this.meshes = [];
+    this.inner.clear();
+
+    const pieces = pair.build();
+    const extents = centerPieces(pieces);
+    this.pieces = pieces;
+    this.travel = 0;
+    this.forward = true;
+    this.zoomMul = 1;
+    this.netDist = Math.max(2.1, extents.netExtent * 1.55);
+    this.combDist = Math.max(2.1, extents.combinedExtent * 1.55);
+    this.autoDist = this.netDist;
+    this.netOffset = new THREE.Vector3(extents.netOffset.x, extents.netOffset.y, extents.netOffset.z);
+    this.camTarget = this.netOffset.clone();
+    this.world.position.copy(this.camTarget);
+    this.inner.position.copy(this.camTarget).negate();
+
+    pieces.forEach(function (p) {
+      const geo = new THREE.BufferGeometry();
+      const posAttr = new THREE.BufferAttribute(new Float32Array(p.net), 3);
+      geo.setAttribute('position', posAttr);
+      const mat = new THREE.MeshStandardMaterial({
+        color: p.color, flatShading: true, side: THREE.DoubleSide,
+        roughness: 0.75, metalness: 0.04
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      this.inner.add(mesh);
+      this.meshes.push(mesh);
+    }, this);
+
+    this.render();
+  };
+
+  Engine.prototype.setTravel = function (travelP, forward) {
+    this.travel = clamp(travelP, 0, 1);
+    this.forward = forward;
+    const cp = forward ? this.travel : 1 - this.travel;
+    this.autoDist = this.netDist + (this.combDist - this.netDist) * cp;
+    this.camTarget = this.netOffset.clone().lerp(new THREE.Vector3(0, 0, 0), cp);
+    this.world.position.copy(this.camTarget);
+    this.inner.position.copy(this.camTarget).negate();
+    const n = this.meshes.length;
+    for (let i = 0; i < n; i++) {
+      const piece = this.pieces[i];
+      const mesh = this.meshes[i];
+      const d = n > 1 ? (i / n) * 0.22 : 0;
+      let local = (cp - d) / (1 - d);
+      local = clamp(local, 0, 1);
+      local = easeInOutCubic(local);
+      const arr = mesh.geometry.attributes.position.array;
+      const net = piece.net, comb = piece.combined;
+      for (let k = 0; k < arr.length; k++) {
+        arr[k] = net[k] + (comb[k] - net[k]) * local;
+      }
+      mesh.geometry.attributes.position.needsUpdate = true;
+      mesh.geometry.computeBoundingSphere();
+    }
+    this.render();
+  };
+
+  Engine.prototype._tick = function () {
+    if (this.idleSpin && !this.dragging) {
+      this.rotY += 0.0016;
+    }
+    this.world.rotation.y = this.rotY;
+    this.world.rotation.x = this.rotX;
+    const d = this.autoDist * this.zoomMul;
+    const t = this.camTarget;
+    this.camera.position.set(t.x, t.y + 0.16 * d, t.z + d);
+    this.camera.lookAt(t);
+    this.render();
+    requestAnimationFrame(this._tick);
+  };
+
+  Engine.prototype.render = function () {
+    this.renderer.render(this.scene, this.camera);
+  };
+
+  window.ShapeLab.Engine = Engine;
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+  const SHAPES = window.ShapeLab.SHAPES;
+  const ICONS = window.ShapeLab.ICONS;
+  const PAIRS = window.ShapeLab.PAIRS;
+  const getPair = window.ShapeLab.getPair;
+  const easeInOutCubic = window.ShapeLab.easeInOutCubic;
+
+  const $ = function (sel, root) { return (root || document).querySelector(sel); };
+  const $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+
+  const fromSelect = $('#fromSelect');
+  const toSelect = $('#toSelect');
+  const fromIcon = $('#fromIcon');
+  const toIcon = $('#toIcon');
+  const swapBtn = $('#swapBtn');
+  const transformBtn = $('#transformBtn');
+  const resetBtn = $('#resetBtn');
+  const canvasEl = $('#canvasHost');
+  const stepDots = $('#stepDots');
+  const stepDesc = $('#stepDesc');
+  const stepLabelEl = $('#stepLabel');
+  const tabFormula = $('#tabFormula');
+  const tabExplain = $('#tabExplain');
+  const panelFormula = $('#panelFormula');
+  const panelExplain = $('#panelExplain');
+  const exampleBtns = $$('.example-btn');
+  const emptyState = $('#emptyState');
+  const emptyMsg = $('#emptyMsg');
+  const emptySuggest = $('#emptySuggest');
+
+  const engine = new window.ShapeLab.Engine(canvasEl);
+
+  const state = { from: 'square', to: 'cube', travel: 0, forward: true, playing: false, valid: true };
+
+  function allShapeKeys() { return Object.keys(SHAPES); }
+
+  function fillSelect(sel, value) {
+    sel.innerHTML = '';
+    allShapeKeys().forEach(function (key) {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = SHAPES[key].label;
+      sel.appendChild(opt);
+    });
+    sel.value = value;
+  }
+
+  function updateIcons() {
+    fromIcon.innerHTML = ICONS[state.from] || '';
+    toIcon.innerHTML = ICONS[state.to] || '';
+  }
+
+  function buildStepDots() {
+    stepDots.innerHTML = '';
+    for (let i = 1; i <= 7; i++) {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'step-dot';
+      dot.textContent = String(i);
+      dot.setAttribute('aria-label', 'Jump to step ' + i);
+      dot.addEventListener('click', function () {
+        if (!state.valid) return;
+        goToTravel((i - 1) / 6, true);
+      });
+      stepDots.appendChild(dot);
+      if (i < 7) {
+        const line = document.createElement('span');
+        line.className = 'step-line';
+        stepDots.appendChild(line);
+      }
+    }
+  }
+
+  function renderSuggestChips(container) {
+    container.innerHTML = '';
+    const heading = document.createElement('div');
+    heading.style.cssText = 'width:100%; text-align:center; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:2px;';
+    heading.textContent = 'Try a supported transformation:';
+    container.appendChild(heading);
+
+    PAIRS.slice(0, 8).forEach(function (pr) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip-btn';
+      btn.textContent = SHAPES[pr.a].label + ' \u2194 ' + SHAPES[pr.b].label;
+      btn.addEventListener('click', function () {
+        state.from = pr.a; state.to = pr.b;
+        fromSelect.value = pr.a; toSelect.value = pr.b;
+        updateIcons();
+        loadCurrentPair();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function showEmptyState(customMsg) {
+    state.valid = false;
+    emptyState.classList.add('show');
+    emptyMsg.textContent = customMsg || (SHAPES[state.from].label + ' and ' + SHAPES[state.to].label + ' don\u2019t have a clean way to join or split into each other. Try one of these real pairs instead:');
+    renderSuggestChips(emptySuggest);
+    stepDesc.textContent = '';
+    stepLabelEl.textContent = '';
+    $$('.step-dot', stepDots).forEach(function (d) { d.classList.remove('active', 'done'); });
+    transformBtn.disabled = true;
+    resetBtn.disabled = true;
+    const msg = customMsg || (SHAPES[state.from].label + ' and ' + SHAPES[state.to].label + ' don\u2019t have a clean join/split relationship, so there\u2019s no honest derivation to show. Try one of these instead:');
+    panelFormula.innerHTML = '<p class="empty-copy">' + msg + '</p><div class="chip-row" id="formulaChips"></div>';
+    panelExplain.innerHTML = '<p class="empty-copy">' + msg + '</p><div class="chip-row" id="explainChips"></div>';
+    renderSuggestChips($('#formulaChips'));
+    renderSuggestChips($('#explainChips'));
+  }
+
+  function hideEmptyState() {
+    emptyState.classList.remove('show');
+    transformBtn.disabled = false;
+    resetBtn.disabled = false;
+  }
+
+  function loadCurrentPair() {
+    if (state.from === state.to) {
+      showEmptyState(
+        'This transformation is not possible: a shape cannot be transformed into itself as a join/split transformation. Try an example below.'
+      );
+      return;
+    }
+
+    const info = getPair(state.from, state.to);
+    if (!info) {
+      showEmptyState(
+        'This transformation is not possible. ' +
+        SHAPES[state.from].label + ' and ' + SHAPES[state.to].label +
+        ' do not have a supported geometric join/split transformation. ' +
+        'Try one of the examples below.'
+      );
+      return;
+    }
+
+    state.valid = true;
+    hideEmptyState();
+    state.forward = info.forward;
+    engine.load(info.pair);
+    state.travel = 0;
+    engine.setTravel(0, state.forward);
+    renderStepUI();
+    renderSidePanels(info.pair);
+  }
+
+  function renderStepUI() {
+    if (!state.valid) return;
+    const info = getPair(state.from, state.to);
+    if (!info) return;
+    const steps = state.forward ? info.pair.stepsForward : info.pair.stepsReverse;
+    const idx = Math.round(state.travel * 6);
+    $$('.step-dot', stepDots).forEach(function (dot, i) {
+      dot.classList.toggle('active', i === idx);
+      dot.classList.toggle('done', i < idx);
+    });
+    stepDesc.textContent = steps[idx];
+    stepLabelEl.textContent = 'Step ' + (idx + 1) + ' of 7:';
+  }
+
+  function renderSidePanels(pair) {
+    panelFormula.innerHTML = pair.formula;
+    panelExplain.innerHTML = pair.explanation;
+  }
+
+  function goToTravel(target, animate) {
+    if (state.playing || !state.valid) return;
+    target = Math.max(0, Math.min(1, target));
+    if (!animate) {
+      state.travel = target;
+      engine.setTravel(target, state.forward);
+      renderStepUI();
+      return;
+    }
+    const start = state.travel;
+    const dur = 450;
+    const t0 = performance.now();
+    state.playing = true;
+    function frame(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      state.travel = start + (target - start) * easeInOutCubic(p);
+      engine.setTravel(state.travel, state.forward);
+      renderStepUI();
+      if (p < 1) requestAnimationFrame(frame);
+      else { state.playing = false; }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function playFull() {
+    if (state.playing || !state.valid) return;
+    state.travel = 0;
+    engine.setTravel(0, state.forward);
+    renderStepUI();
+    const dur = 3600;
+    const t0 = performance.now();
+    state.playing = true;
+    transformBtn.classList.add('is-playing');
+    function frame(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      state.travel = easeInOutCubic(p);
+      engine.setTravel(state.travel, state.forward);
+      renderStepUI();
+      if (p < 1) requestAnimationFrame(frame);
+      else { state.playing = false; transformBtn.classList.remove('is-playing'); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  fromSelect.addEventListener('change', function () {
+    state.from = fromSelect.value;
+    updateIcons();
+    loadCurrentPair();
+  });
+  toSelect.addEventListener('change', function () {
+    state.to = toSelect.value;
+    updateIcons();
+    loadCurrentPair();
+  });
+  swapBtn.addEventListener('click', function () {
+    const nf = state.to, nt = state.from;
+    state.from = nf; state.to = nt;
+    fromSelect.value = nf; toSelect.value = nt;
+    updateIcons();
+    loadCurrentPair();
+  });
+  transformBtn.addEventListener('click', playFull);
+  resetBtn.addEventListener('click', function () { goToTravel(0, false); });
+
+  $$('.example-btn').slice(0, 8).forEach(function (btn) {
+    const icon = btn.querySelector('.shape-icon');
+    const fromKey = btn.getAttribute('data-from');
+    if (icon && ICONS[fromKey]) icon.innerHTML = ICONS[fromKey];
+    btn.addEventListener('click', function () {
+      const a = btn.getAttribute('data-from'), b = btn.getAttribute('data-to');
+      state.from = a; state.to = b;
+      fromSelect.value = a; toSelect.value = b;
+      updateIcons();
+      loadCurrentPair();
+      setTimeout(playFull, 150);
+    });
+  });
+
+  function setTab(which) {
+    const formulaOn = which === 'formula';
+    tabFormula.classList.toggle('active', formulaOn);
+    tabExplain.classList.toggle('active', !formulaOn);
+    panelFormula.classList.toggle('active', formulaOn);
+    panelExplain.classList.toggle('active', !formulaOn);
+  }
+  tabFormula.addEventListener('click', function () { setTab('formula'); });
+  tabExplain.addEventListener('click', function () { setTab('explain'); });
+
+  //Modals
+  function openModal(id) { $(id).classList.add('open'); }
+  function closeModal(id) { $(id).classList.remove('open'); }
+  $$('[data-open-modal]').forEach(function (el) {
+    el.addEventListener('click', function () { openModal(el.getAttribute('data-open-modal')); });
+  });
+  $$('[data-close-modal]').forEach(function (el) {
+    el.addEventListener('click', function () { closeModal(el.getAttribute('data-close-modal')); });
+  });
+  $$('.modal-overlay').forEach(function (ov) {
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.classList.remove('open'); });
+  });
+
+  function buildFormulaLibrary() {
+    const host = $('#formulaLibraryBody');
+    host.innerHTML = '';
+    PAIRS.forEach(function (pair) {
+      const wrap = document.createElement('div');
+      wrap.className = 'library-entry';
+      const body = document.createElement('div');
+      body.innerHTML = pair.formula;
+      wrap.appendChild(body);
+      host.appendChild(wrap);
+    });
+  }
+
+  //Initial
+  fillSelect(fromSelect, 'square');
+  fillSelect(toSelect, 'cube');
+  state.from = fromSelect.value; state.to = toSelect.value;
+  updateIcons();
+  buildStepDots();
+  buildFormulaLibrary();
+  loadCurrentPair();
+  setTab('formula');
+})();
+</script>
+</body>
+</html>
